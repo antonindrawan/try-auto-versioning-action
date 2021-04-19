@@ -16,8 +16,6 @@ async function run(): Promise<void> {
     )
 
     const prNum = ev.pull_request.number
-    core.info(`GITHUB_EVENT_PATH: ${process.env.GITHUB_EVENT_PATH}`)
-    core.info(`Content: ${JSON.stringify(ev)}`)
     core.info(`PR number: ${prNum}`)
   } catch (error) {
     core.info(error)
