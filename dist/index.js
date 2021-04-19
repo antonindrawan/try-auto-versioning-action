@@ -42,15 +42,29 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(2186));
 const simple_git_1 = __importDefault(__webpack_require__(1477));
 const semver_1 = __webpack_require__(1383);
+const fs = __importStar(__webpack_require__(5747));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        let nonPullRequest = false;
+        try {
+            const ev = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+            const prNum = ev.pull_request.number;
+            core.info(`PR number: ${prNum}`);
+        }
+        catch (error) {
+            core.info(error);
+            nonPullRequest = true;
+        }
+        if (!nonPullRequest) {
+            return;
+        }
         try {
             const git = simple_git_1.default();
             let version;
             const tags = yield git.tags();
             if (tags.latest === undefined) {
                 version = new semver_1.SemVer('0.0.1');
-                core.debug(version.format());
+                core.info(version.format());
             }
             else {
                 version = new semver_1.SemVer(tags.latest);
@@ -59,11 +73,11 @@ function run() {
             // add the tag
             try {
                 const value = yield git.addTag(version.format());
-                core.debug(`addTag result: ${value['name']}`);
+                core.info(`addTag result: ${value['name']}`);
                 // push the tag
                 try {
                     const pushResult = yield git.push('origin', value['name']);
-                    core.debug(`tag successfully pushed to ${String(pushResult)}`);
+                    core.info(`tag successfully pushed to ${String(pushResult.repo)}`);
                 }
                 catch (error) {
                     core.setFailed(error.message);

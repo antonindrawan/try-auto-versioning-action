@@ -10,6 +10,7 @@ declare let process: {
 }
 
 async function run(): Promise<void> {
+  let nonPullRequest = false
   try {
     const ev = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
@@ -19,8 +20,12 @@ async function run(): Promise<void> {
     core.info(`PR number: ${prNum}`)
   } catch (error) {
     core.info(error)
+    nonPullRequest = true
   }
 
+  if (!nonPullRequest) {
+    return
+  }
   try {
     const git: SimpleGit = simpleGit()
     let version: SemVer
