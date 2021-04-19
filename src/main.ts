@@ -1,22 +1,10 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
-import simpleGit, {GitError, SimpleGit, StatusResult, TagResult} from 'simple-git';
+import simpleGit, {GitError, SimpleGit, TagResult} from 'simple-git';
 import { SemVer } from 'semver';
-import { getUnpackedSettings } from 'node:http2';
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
     const git: SimpleGit = simpleGit()
-
-    core.setOutput('time', new Date().toTimeString())
-
     let version: SemVer;
     const tags: TagResult = await git.tags()
     if (tags.latest === undefined) {
@@ -25,21 +13,23 @@ async function run(): Promise<void> {
     } else {
       version = new SemVer(tags.latest)
       version.inc('patch')
-      core.debug("latest tag: " + version.format());
     }
 
-    await git.addTag(version.format()).then((value: { name: string; }): void => {
+    await git.addTag(version.format()).then((value: { name: string; }) => {
       console.log("addTag result: " + value['name'])
+
+      // push the tag
       git.push('origin', value['name']).then((success) => {
-        console.log('repo successfully pushed');
+        console.log('tag successfully pushed');
       }).catch((error: GitError) => {
-        console.log('repo push failed: ' + error);
+        console.log("push tag failed: " + error);
+        core.setFailed(error.message)
       });
 
-    }).catch((error : GitError) : void => {
-
+    }).catch((error : GitError) => {
+      console.log("addTag failed: " + error)
+      core.setFailed(error.message)
     })
-    //console.log(status.isClean());
 
   } catch (error) {
     core.setFailed(error.message)
