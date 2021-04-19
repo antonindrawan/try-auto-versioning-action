@@ -22,10 +22,11 @@
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "Anton Indrawan",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.6"
+    "@actions/core": "^1.2.6",
+    "simple-git": "^2.38.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
